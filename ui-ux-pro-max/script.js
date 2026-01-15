@@ -149,6 +149,19 @@ function createCommit() {
     
     renderGitWorkflow();
     
+    // 在终端中显示git命令
+    displayInTerminal('git add .', () => {
+        setTimeout(() => {
+            displayInTerminal(`git commit -m "${message}"`, () => {
+                setTimeout(() => {
+                    displayInTerminal('git push origin main', () => {
+                        showCommitDetails(hash);
+                    });
+                }, 300);
+            });
+        }, 300);
+    });
+    
     // 视觉反馈
     const commitElement = document.querySelector(`[data-hash="${hash}"]`);
     if (commitElement) {
@@ -161,7 +174,7 @@ function createCommit() {
     // 自动触发CI
     setTimeout(() => {
         runPipeline();
-    }, 800);
+    }, 2000);
 }
 
 // 创建分支
@@ -224,12 +237,252 @@ function showGitLog() {
     modal.classList.remove('hidden');
 }
 
+// 代码变更示例数据
+const codeDiffs = {
+    'df56c2d': {
+        files: [
+            { name: 'src/utils/calculator.js', type: 'added', lines: 45 },
+            { name: 'tests/calculator.test.js', type: 'added', lines: 32 }
+        ],
+        diff: `diff --git a/src/utils/calculator.js b/src/utils/calculator.js
+new file mode 100644
+index 0000000..a1b2c3d
+--- /dev/null
++++ b/src/utils/calculator.js
+@@ -0,0 +1,45 @@
++/**
++ * 计算器类
++ */
++export class Calculator {
++  add(a, b) {
++    return a + b;
++  }
++  
++  subtract(a, b) {
++    return a - b;
++  }
++  
++  multiply(a, b) {
++    return a * b;
++  }
++  
++  divide(a, b) {
++    if (b === 0) {
++      throw new Error('Division by zero');
++    }
++    return a / b;
++  }
++}`
+    },
+    'fa2aa3c': {
+        files: [
+            { name: '.github/workflows/ci.yml', type: 'modified', lines: 15 }
+        ],
+        diff: `diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index a1b2c3d..f4e5d6a
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -24,7 +24,7 @@ jobs:
+       - name: Install dependencies
+-        run: npm ci
++        working-directory: ./demo-project
++        run: npm ci
+       
+       - name: Run ESLint`
+    },
+    'ade3705': {
+        files: [
+            { name: '分享步骤总结.md', type: 'added', lines: 318 }
+        ],
+        diff: `diff --git a/分享步骤总结.md b/分享步骤总结.md
+new file mode 100644
+index 0000000..c7d8e9f
+--- /dev/null
++++ b/分享步骤总结.md
+@@ -0,0 +1,318 @@
++# 基石（+1）：坚实的工程实践 - Git/CI/CD基础
++
++## 📋 分享准备清单
++...`
+    }
+};
+
+// 生成代码diff（如果没有预定义的）
+function generateCodeDiff(commit) {
+    const messages = commit.message.toLowerCase();
+    const files = [];
+    let diff = '';
+    
+    if (messages.includes('feat')) {
+        files.push({ name: 'src/features/new-feature.js', type: 'added', lines: 50 });
+        diff = `diff --git a/src/features/new-feature.js b/src/features/new-feature.js
+new file mode 100644
+index 0000000..a1b2c3d
+--- /dev/null
++++ b/src/features/new-feature.js
+@@ -0,0 +1,50 @@
++/**
++ * 新功能实现
++ */
++export function newFeature() {
++  // 功能实现
++  return true;
++}`;
+    } else if (messages.includes('fix')) {
+        files.push({ name: 'src/utils/validator.js', type: 'modified', lines: 12 });
+        diff = `diff --git a/src/utils/validator.js b/src/utils/validator.js
+index a1b2c3d..f4e5d6a
+--- a/src/utils/validator.js
++++ b/src/utils/validator.js
+@@ -10,7 +10,7 @@ export function validateEmail(email) {
+-    const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
++    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+     return emailRegex.test(email);
+   }
+ }`;
+    } else if (messages.includes('test')) {
+        files.push({ name: 'tests/feature.test.js', type: 'added', lines: 25 });
+        diff = `diff --git a/tests/feature.test.js b/tests/feature.test.js
+new file mode 100644
+index 0000000..a1b2c3d
+--- /dev/null
++++ b/tests/feature.test.js
+@@ -0,0 +1,25 @@
++describe('Feature Tests', () => {
++  test('should work correctly', () => {
++    expect(true).toBe(true);
++  });
++});`;
+    }
+    
+    return { files, diff: diff || 'No changes' };
+}
+
 // 显示提交详情
 function showCommitDetails(hash) {
     const commit = [...gitData.main, ...gitData.develop].find(c => c.hash === hash);
-    if (commit) {
-        showNotification(`📋 提交详情: ${commit.message}`, 'info');
-    }
+    if (!commit) return;
+    
+    // 获取代码diff
+    const diffData = codeDiffs[hash] || generateCodeDiff(commit);
+    
+    // 显示在终端中
+    displayInTerminal(`git show ${hash.substring(0, 7)}`, () => {
+        const terminalContent = document.getElementById('terminal-content');
+        const commitInfoPanel = document.getElementById('commit-info');
+        const codeDiffPanel = document.getElementById('code-diff');
+        const detailsPanel = document.getElementById('commit-details-panel');
+        
+        // 显示提交信息
+        commitInfoPanel.innerHTML = `
+            <div class="space-y-1.5">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400">Commit:</span>
+                    <code class="text-blue-400">${hash.substring(0, 7)}</code>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400">Author:</span>
+                    <span class="text-white">${commit.author}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400">Date:</span>
+                    <span class="text-white">${commit.time}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-slate-400">Message:</span>
+                    <span class="text-white">${commit.message}</span>
+                </div>
+                <div class="flex items-start gap-2 pt-2 border-t border-dark-border">
+                    <span class="text-slate-400">Files:</span>
+                    <div class="flex-1">
+                        ${diffData.files.map(f => `
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs px-1.5 py-0.5 rounded ${f.type === 'added' ? 'bg-green-500/20 text-green-400' : f.type === 'modified' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'}">
+                                    ${f.type === 'added' ? '+' : f.type === 'modified' ? '~' : '-'}
+                                </span>
+                                <span class="text-white text-xs">${f.name}</span>
+                                <span class="text-slate-500 text-xs">(${f.lines} lines)</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 显示代码diff
+        codeDiffPanel.innerHTML = formatDiff(diffData.diff);
+        
+        // 显示详情面板
+        detailsPanel.classList.remove('hidden');
+        detailsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+}
+
+// 格式化diff代码
+function formatDiff(diffText) {
+    const lines = diffText.split('\n');
+    return lines.map(line => {
+        let className = 'text-slate-400';
+        if (line.startsWith('+') && !line.startsWith('+++')) {
+            className = 'text-green-400 bg-green-500/10';
+        } else if (line.startsWith('-') && !line.startsWith('---')) {
+            className = 'text-red-400 bg-red-500/10';
+        } else if (line.startsWith('@@')) {
+            className = 'text-blue-400';
+        } else if (line.startsWith('diff') || line.startsWith('index') || line.startsWith('---') || line.startsWith('+++')) {
+            className = 'text-purple-400';
+        }
+        return `<div class="${className} py-0.5">${escapeHtml(line)}</div>`;
+    }).join('');
+}
+
+// HTML转义
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 在终端中显示命令和输出
+function displayInTerminal(command, callback) {
+    const terminalContent = document.getElementById('terminal-content');
+    const prompt = document.getElementById('terminal-prompt');
+    
+    // 添加命令
+    prompt.innerHTML = `
+        <span class="text-green-400">$</span>
+        <span class="text-slate-300 ml-2">${command}</span>
+    `;
+    
+    // 模拟执行
+    setTimeout(() => {
+        if (callback) callback();
+        
+        // 添加新的提示符
+        setTimeout(() => {
+            prompt.innerHTML = `
+                <span class="text-green-400">$</span>
+                <span class="text-slate-300 ml-2 animate-pulse">_</span>
+            `;
+        }, 500);
+    }, 300);
+}
+
+// 清除终端
+function clearTerminal() {
+    const terminalContent = document.getElementById('terminal-content');
+    terminalContent.innerHTML = `
+        <div class="terminal-prompt" id="terminal-prompt">
+            <span class="text-green-400">$</span>
+            <span class="text-slate-300 ml-2 animate-pulse">_</span>
+        </div>
+    `;
+    hideCommitDetails();
+}
+
+// 隐藏提交详情
+function hideCommitDetails() {
+    document.getElementById('commit-details-panel').classList.add('hidden');
 }
 
 // 运行CI流程
