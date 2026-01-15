@@ -4,236 +4,268 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Git/CI/CD 工程实践可视化演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0F172A',
+                            card: '#1E293B',
+                            hover: '#334155',
+                            border: '#334155',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+    </style>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="container">
-        <!-- 顶部导航 -->
-        <header class="header">
-            <div class="header-content">
-                <h1>🔧 Git/CI/CD 工程实践演示</h1>
-                <p class="subtitle">基石（+1）：坚实的工程实践 - Git/CI/CD基础</p>
+<body class="bg-dark-bg text-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto">
+        <div class="bg-dark-card/90 backdrop-blur-lg border border-dark-border rounded-xl px-6 py-4 shadow-xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                    <div>
+                        <h1 class="text-lg font-semibold text-white">Git/CI/CD 演示</h1>
+                        <p class="text-xs text-slate-400">工程实践可视化</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleTheme()" class="p-2 hover:bg-dark-hover rounded-lg transition-colors cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
-        </header>
+        </div>
+    </nav>
 
-        <!-- 主要内容区域 -->
-        <main class="main-content">
-            <!-- 左侧：Git工作流可视化 -->
-            <section class="section git-workflow">
-                <h2>📦 Git 工作流</h2>
-                <div class="workflow-diagram">
-                    <div class="branch main-branch">
-                        <div class="branch-header">
-                            <span class="branch-name">main</span>
-                            <span class="branch-status">生产环境</span>
-                        </div>
-                        <div class="commits" id="main-commits">
-                            <div class="commit" data-hash="df56c2d">
-                                <span class="commit-hash">df56c2d</span>
-                                <span class="commit-message">chore: 初始化项目</span>
-                                <span class="commit-time">3小时前</span>
-                            </div>
-                            <div class="commit" data-hash="fa2aa3c">
-                                <span class="commit-hash">fa2aa3c</span>
-                                <span class="commit-message">fix: 修复CI配置</span>
-                                <span class="commit-time">2小时前</span>
-                            </div>
-                            <div class="commit active" data-hash="ade3705">
-                                <span class="commit-hash">ade3705</span>
-                                <span class="commit-message">docs: 添加分享文档</span>
-                                <span class="commit-time">刚刚</span>
-                            </div>
-                        </div>
+    <!-- Main Content -->
+    <div class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-dark-card border border-dark-border rounded-xl p-4 hover:border-blue-500/50 transition-all cursor-pointer group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 mb-1">项目文件</p>
+                        <p class="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">23</p>
                     </div>
-
-                    <div class="branch-connector"></div>
-
-                    <div class="branch develop-branch">
-                        <div class="branch-header">
-                            <span class="branch-name">develop</span>
-                            <span class="branch-status">开发环境</span>
-                        </div>
-                        <div class="commits" id="develop-commits">
-                            <!-- 动态生成 -->
-                        </div>
-                    </div>
-
-                    <div class="feature-branches">
-                        <div class="branch feature-branch">
-                            <div class="branch-header">
-                                <span class="branch-name">feature/new-feature</span>
-                                <button class="btn-merge" onclick="mergeBranch('feature/new-feature')">合并</button>
-                            </div>
-                            <div class="commits">
-                                <div class="commit">
-                                    <span class="commit-hash">a1b2c3d</span>
-                                    <span class="commit-message">feat: 添加新功能</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="p-3 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                        </svg>
                     </div>
                 </div>
-
-                <div class="git-actions">
-                    <button class="btn btn-primary" onclick="createCommit()">✨ 创建新提交</button>
-                    <button class="btn btn-secondary" onclick="createBranch()">🌿 创建分支</button>
-                    <button class="btn btn-info" onclick="showGitLog()">📜 查看Git日志</button>
-                </div>
-            </section>
-
-            <!-- 右侧：CI/CD流程可视化 -->
-            <section class="section cicd-pipeline">
-                <h2>🚀 CI/CD 自动化流程</h2>
-                <div class="pipeline-container">
-                    <div class="pipeline-trigger">
-                        <div class="trigger-box" id="trigger">
-                            <span class="trigger-icon">⚡</span>
-                            <span class="trigger-text">代码推送</span>
-                        </div>
-                        <div class="arrow">↓</div>
+            </div>
+            <div class="bg-dark-card border border-dark-border rounded-xl p-4 hover:border-green-500/50 transition-all cursor-pointer group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 mb-1">测试用例</p>
+                        <p class="text-2xl font-bold text-white group-hover:text-green-400 transition-colors">18</p>
                     </div>
-
-                    <div class="pipeline-stages">
-                        <!-- Stage 1: Lint -->
-                        <div class="stage" id="stage-lint">
-                            <div class="stage-header">
-                                <span class="stage-icon">🔍</span>
-                                <span class="stage-name">Lint & Format</span>
-                                <span class="stage-status" id="status-lint">等待中</span>
-                            </div>
-                            <div class="stage-content">
-                                <div class="step">
-                                    <span class="step-name">ESLint检查</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                                <div class="step">
-                                    <span class="step-name">Prettier格式化</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Stage 2: Test -->
-                        <div class="stage" id="stage-test">
-                            <div class="stage-header">
-                                <span class="stage-icon">🧪</span>
-                                <span class="stage-name">测试</span>
-                                <span class="stage-status" id="status-test">等待中</span>
-                            </div>
-                            <div class="stage-content">
-                                <div class="step">
-                                    <span class="step-name">单元测试 (Node 18)</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                                <div class="step">
-                                    <span class="step-name">单元测试 (Node 20)</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                                <div class="step">
-                                    <span class="step-name">覆盖率报告</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Stage 3: Build -->
-                        <div class="stage" id="stage-build">
-                            <div class="stage-header">
-                                <span class="stage-icon">📦</span>
-                                <span class="stage-name">构建</span>
-                                <span class="stage-status" id="status-build">等待中</span>
-                            </div>
-                            <div class="stage-content">
-                                <div class="step">
-                                    <span class="step-name">构建验证</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Stage 4: Security -->
-                        <div class="stage" id="stage-security">
-                            <div class="stage-header">
-                                <span class="stage-icon">🔒</span>
-                                <span class="stage-name">安全扫描</span>
-                                <span class="stage-status" id="status-security">等待中</span>
-                            </div>
-                            <div class="stage-content">
-                                <div class="step">
-                                    <span class="step-name">npm audit</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                                <div class="step">
-                                    <span class="step-name">Snyk扫描</span>
-                                    <span class="step-status">⏳</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pipeline-result" id="pipeline-result">
-                        <div class="result-box">
-                            <span class="result-icon">⏳</span>
-                            <span class="result-text">等待执行...</span>
-                        </div>
+                    <div class="p-3 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
+                        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
                     </div>
                 </div>
-
-                <div class="pipeline-actions">
-                    <button class="btn btn-success" onclick="runPipeline()">▶️ 运行CI流程</button>
-                    <button class="btn btn-warning" onclick="resetPipeline()">🔄 重置</button>
-                    <button class="btn btn-info" onclick="viewDetails()">📊 查看详情</button>
-                </div>
-            </section>
-
-            <!-- 底部：统计信息 -->
-            <section class="section stats">
-                <h2>📊 项目统计</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">📁</div>
-                        <div class="stat-value" id="stat-files">23</div>
-                        <div class="stat-label">项目文件</div>
+            </div>
+            <div class="bg-dark-card border border-dark-border rounded-xl p-4 hover:border-purple-500/50 transition-all cursor-pointer group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 mb-1">覆盖率</p>
+                        <p class="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors">100%</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🧪</div>
-                        <div class="stat-value" id="stat-tests">18</div>
-                        <div class="stat-label">测试用例</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-value" id="stat-coverage">100%</div>
-                        <div class="stat-label">覆盖率</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🚀</div>
-                        <div class="stat-value" id="stat-builds">5</div>
-                        <div class="stat-label">CI运行次数</div>
+                    <div class="p-3 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
                     </div>
                 </div>
-            </section>
-        </main>
-
-        <!-- 模态框：Git日志 -->
-        <div class="modal" id="gitLogModal">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal('gitLogModal')">&times;</span>
-                <h3>Git 提交日志</h3>
-                <div class="git-log" id="gitLogContent">
-                    <!-- 动态生成 -->
+            </div>
+            <div class="bg-dark-card border border-dark-border rounded-xl p-4 hover:border-amber-500/50 transition-all cursor-pointer group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 mb-1">CI运行</p>
+                        <p class="text-2xl font-bold text-white group-hover:text-amber-400 transition-colors">5</p>
+                    </div>
+                    <div class="p-3 bg-amber-500/10 rounded-lg group-hover:bg-amber-500/20 transition-colors">
+                        <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 模态框：CI详情 -->
-        <div class="modal" id="ciDetailsModal">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal('ciDetailsModal')">&times;</span>
-                <h3>CI/CD 运行详情</h3>
-                <div class="ci-details" id="ciDetailsContent">
-                    <!-- 动态生成 -->
+        <div class="grid lg:grid-cols-2 gap-6">
+            <!-- Git Workflow Section -->
+            <section class="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                        Git 工作流
+                    </h2>
                 </div>
+
+                <!-- Main Branch -->
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            <span class="text-sm font-medium text-slate-300">main</span>
+                        </div>
+                        <span class="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">生产环境</span>
+                    </div>
+                    <div class="space-y-2" id="main-commits">
+                        <!-- Commits will be generated here -->
+                    </div>
+                </div>
+
+                <!-- Develop Branch -->
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span class="text-sm font-medium text-slate-300">develop</span>
+                        </div>
+                        <span class="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">开发环境</span>
+                    </div>
+                    <div class="space-y-2" id="develop-commits">
+                        <!-- Commits will be generated here -->
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-wrap gap-3 mt-6 pt-6 border-t border-dark-border">
+                    <button onclick="createCommit()" class="flex-1 min-w-[140px] px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        创建提交
+                    </button>
+                    <button onclick="createBranch()" class="flex-1 min-w-[140px] px-4 py-2.5 bg-dark-hover hover:bg-slate-600 border border-dark-border text-slate-300 rounded-lg font-medium transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                        创建分支
+                    </button>
+                    <button onclick="showGitLog()" class="px-4 py-2.5 bg-dark-hover hover:bg-slate-600 border border-dark-border text-slate-300 rounded-lg font-medium transition-all duration-200 cursor-pointer flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        日志
+                    </button>
+                </div>
+            </section>
+
+            <!-- CI/CD Pipeline Section -->
+            <section class="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        CI/CD 流程
+                    </h2>
+                    <div id="pipeline-status" class="flex items-center gap-2 text-sm">
+                        <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+                        <span class="text-slate-400">等待中</span>
+                    </div>
+                </div>
+
+                <!-- Trigger -->
+                <div class="text-center mb-6">
+                    <div id="trigger" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <span class="font-medium">代码推送触发</span>
+                    </div>
+                </div>
+
+                <!-- Pipeline Stages -->
+                <div class="space-y-4" id="pipeline-stages">
+                    <!-- Stages will be generated here -->
+                </div>
+
+                <!-- Result -->
+                <div id="pipeline-result" class="mt-6 pt-6 border-t border-dark-border">
+                    <div class="text-center py-4 text-slate-400">
+                        <svg class="w-8 h-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-sm">等待执行...</p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-wrap gap-3 mt-6 pt-6 border-t border-dark-border">
+                    <button onclick="runPipeline()" class="flex-1 min-w-[140px] px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed" id="run-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        运行CI
+                    </button>
+                    <button onclick="resetPipeline()" class="px-4 py-2.5 bg-dark-hover hover:bg-slate-600 border border-dark-border text-slate-300 rounded-lg font-medium transition-all duration-200 cursor-pointer flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        重置
+                    </button>
+                    <button onclick="viewDetails()" class="px-4 py-2.5 bg-dark-hover hover:bg-slate-600 border border-dark-border text-slate-300 rounded-lg font-medium transition-all duration-200 cursor-pointer flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        详情
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="gitLogModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="modal-content bg-dark-card border border-dark-border rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold text-white">Git 提交日志</h3>
+                <button onclick="closeModal('gitLogModal')" class="p-2 hover:bg-dark-hover rounded-lg transition-colors cursor-pointer">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
+            <div id="gitLogContent" class="space-y-2 font-mono text-sm"></div>
+        </div>
+    </div>
+
+    <div id="ciDetailsModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="modal-content bg-dark-card border border-dark-border rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold text-white">CI/CD 运行详情</h3>
+                <button onclick="closeModal('ciDetailsModal')" class="p-2 hover:bg-dark-hover rounded-lg transition-colors cursor-pointer">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="ciDetailsContent" class="space-y-4"></div>
         </div>
     </div>
 

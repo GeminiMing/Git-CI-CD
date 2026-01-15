@@ -1,62 +1,133 @@
 // Git工作流数据
 const gitData = {
     main: [
-        { hash: 'df56c2d', message: 'chore: 初始化项目', time: '3小时前' },
-        { hash: 'fa2aa3c', message: 'fix: 修复CI配置', time: '2小时前' },
-        { hash: 'ade3705', message: 'docs: 添加分享文档', time: '刚刚', active: true }
+        { hash: 'df56c2d', message: 'chore: 初始化项目', time: '3小时前', author: 'GeminiMing' },
+        { hash: 'fa2aa3c', message: 'fix: 修复CI配置', time: '2小时前', author: 'GeminiMing' },
+        { hash: 'ade3705', message: 'docs: 添加分享文档', time: '刚刚', author: 'GeminiMing', active: true }
     ],
     develop: [
-        { hash: 'a1b2c3d', message: 'feat: 添加新功能', time: '1小时前' }
+        { hash: 'a1b2c3d', message: 'feat: 添加新功能', time: '1小时前', author: 'GeminiMing' }
     ],
-    features: [
-        { name: 'feature/new-feature', commits: [
-            { hash: 'x1y2z3w', message: 'feat: 添加新功能' }
-        ]}
-    ]
+    features: []
 };
 
 // CI/CD状态
 let pipelineState = {
     running: false,
     currentStage: null,
-    stages: ['lint', 'test', 'build', 'security']
+    stages: [
+        { id: 'lint', name: 'Lint & Format', icon: '🔍', steps: ['ESLint检查', 'Prettier格式化'] },
+        { id: 'test', name: '测试', icon: '🧪', steps: ['单元测试 (Node 18)', '单元测试 (Node 20)', '覆盖率报告'] },
+        { id: 'build', name: '构建', icon: '📦', steps: ['构建验证'] },
+        { id: 'security', name: '安全扫描', icon: '🔒', steps: ['npm audit', 'Snyk扫描'] }
+    ]
 };
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
     renderGitWorkflow();
+    renderPipelineStages();
     updateStats();
 });
 
 // 渲染Git工作流
 function renderGitWorkflow() {
     const mainCommits = document.getElementById('main-commits');
-    mainCommits.innerHTML = gitData.main.map(commit => `
-        <div class="commit ${commit.active ? 'active' : ''}" data-hash="${commit.hash}">
-            <span class="commit-hash">${commit.hash.substring(0, 7)}</span>
-            <span class="commit-message">${commit.message}</span>
-            <span class="commit-time">${commit.time}</span>
-        </div>
-    `).join('');
+    mainCommits.innerHTML = gitData.main.map(commit => createCommitHTML(commit, 'main')).join('');
 
     const developCommits = document.getElementById('develop-commits');
-    developCommits.innerHTML = gitData.develop.map(commit => `
-        <div class="commit" data-hash="${commit.hash}">
-            <span class="commit-hash">${commit.hash.substring(0, 7)}</span>
-            <span class="commit-message">${commit.message}</span>
-            <span class="commit-time">${commit.time}</span>
+    developCommits.innerHTML = gitData.develop.map(commit => createCommitHTML(commit, 'develop')).join('');
+}
+
+function createCommitHTML(commit, branch) {
+    const isActive = commit.active || false;
+    const borderColor = branch === 'main' ? 'border-green-500/50' : 'border-blue-500/50';
+    const bgColor = isActive ? 'bg-green-500/10 border-green-500' : 'bg-dark-hover';
+    
+    return `
+        <div class="commit-item group cursor-pointer ${bgColor} ${isActive ? borderColor : 'border-dark-border'} border rounded-lg p-3 hover:border-blue-500/70 transition-all duration-200" 
+             data-hash="${commit.hash}" 
+             onclick="showCommitDetails('${commit.hash}')">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white">
+                            ${commit.author.charAt(0).toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <code class="text-xs font-mono text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">${commit.hash.substring(0, 7)}</code>
+                            <span class="text-sm font-medium text-white truncate">${commit.message}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <span>${commit.author}</span>
+                            <span>•</span>
+                            <span>${commit.time}</span>
+                        </div>
+                    </div>
+                </div>
+                ${isActive ? `
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-500/20 text-green-400">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            最新
+                        </span>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+// 渲染Pipeline阶段
+function renderPipelineStages() {
+    const container = document.getElementById('pipeline-stages');
+    container.innerHTML = pipelineState.stages.map(stage => `
+        <div class="stage-container bg-dark-hover border border-dark-border rounded-xl p-4 transition-all duration-300" id="stage-${stage.id}">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
+                        <span class="text-xl">${stage.icon}</span>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-white">${stage.name}</h4>
+                        <p class="text-xs text-slate-400">等待执行</p>
+                    </div>
+                </div>
+                <div class="stage-status flex items-center gap-2" id="status-${stage.id}">
+                    <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+                    <span class="text-xs text-slate-400">等待中</span>
+                </div>
+            </div>
+            <div class="space-y-2" id="steps-${stage.id}">
+                ${stage.steps.map(step => `
+                    <div class="step-item flex items-center justify-between py-2 px-3 bg-dark-bg rounded-lg">
+                        <span class="text-sm text-slate-300">${step}</span>
+                        <span class="step-icon text-slate-500">⏳</span>
+                    </div>
+                `).join('')}
+            </div>
         </div>
     `).join('');
 }
 
 // 创建新提交
 function createCommit() {
+    if (pipelineState.running) {
+        showNotification('CI流程正在运行中，请稍候...', 'warning');
+        return;
+    }
+
     const messages = [
         'feat: 添加新功能',
         'fix: 修复bug',
         'docs: 更新文档',
         'refactor: 重构代码',
-        'test: 添加测试用例'
+        'test: 添加测试用例',
+        'chore: 更新依赖'
     ];
     
     const message = messages[Math.floor(Math.random() * messages.length)];
@@ -66,6 +137,7 @@ function createCommit() {
         hash: hash,
         message: message,
         time: '刚刚',
+        author: 'GeminiMing',
         active: true
     };
 
@@ -77,12 +149,19 @@ function createCommit() {
     
     renderGitWorkflow();
     
+    // 视觉反馈
+    const commitElement = document.querySelector(`[data-hash="${hash}"]`);
+    if (commitElement) {
+        commitElement.classList.add('animate-pulse');
+        setTimeout(() => commitElement.classList.remove('animate-pulse'), 1000);
+    }
+    
+    showNotification(`✅ 新提交已创建: ${message}`, 'success');
+    
     // 自动触发CI
     setTimeout(() => {
         runPipeline();
-    }, 500);
-    
-    showNotification(`✨ 新提交: ${message}`, 'success');
+    }, 800);
 }
 
 // 创建分支
@@ -91,45 +170,35 @@ function createBranch() {
         'feature/user-auth',
         'feature/payment',
         'fix/security-patch',
-        'refactor/api-layer'
+        'refactor/api-layer',
+        'feat/dashboard'
     ];
     
     const name = branchNames[Math.floor(Math.random() * branchNames.length)];
     
-    const branchHTML = `
-        <div class="branch feature-branch">
-            <div class="branch-header">
-                <span class="branch-name">${name}</span>
-                <button class="btn-merge" onclick="mergeBranch('${name}')">合并</button>
-            </div>
-            <div class="commits">
-                <div class="commit">
-                    <span class="commit-hash">${generateHash().substring(0, 7)}</span>
-                    <span class="commit-message">feat: 新功能开发</span>
-                </div>
-            </div>
-        </div>
-    `;
+    gitData.features.push({
+        name: name,
+        commits: [{ hash: generateHash(), message: 'feat: 新功能开发', author: 'GeminiMing' }]
+    });
     
-    const featureBranches = document.querySelector('.feature-branches');
-    featureBranches.insertAdjacentHTML('beforeend', branchHTML);
-    
-    showNotification(`🌿 创建分支: ${name}`, 'info');
+    showNotification(`🌿 分支已创建: ${name}`, 'info');
 }
 
 // 合并分支
 function mergeBranch(branchName) {
-    showNotification(`✅ 合并分支: ${branchName}`, 'success');
-    
-    // 找到并移除分支
-    const branches = document.querySelectorAll('.feature-branch');
-    branches.forEach(branch => {
-        if (branch.querySelector('.branch-name').textContent === branchName) {
-            branch.style.opacity = '0';
-            branch.style.transform = 'translateX(-100px)';
-            setTimeout(() => branch.remove(), 500);
-        }
-    });
+    const branch = gitData.features.find(b => b.name === branchName);
+    if (branch) {
+        gitData.main.unshift({
+            hash: generateHash(),
+            message: `merge: ${branchName}`,
+            time: '刚刚',
+            author: 'GeminiMing',
+            active: true
+        });
+        gitData.features = gitData.features.filter(b => b.name !== branchName);
+        renderGitWorkflow();
+        showNotification(`✅ 分支已合并: ${branchName}`, 'success');
+    }
 }
 
 // 显示Git日志
@@ -139,13 +208,28 @@ function showGitLog() {
     
     const allCommits = [...gitData.main, ...gitData.develop];
     content.innerHTML = allCommits.map(commit => `
-        <div class="git-log-entry">
-            <strong>${commit.hash.substring(0, 7)}</strong> - ${commit.message}<br>
-            <small>${commit.time}</small>
+        <div class="p-3 bg-dark-hover border border-dark-border rounded-lg hover:border-blue-500/50 transition-colors cursor-pointer">
+            <div class="flex items-center gap-3 mb-2">
+                <code class="text-xs font-mono text-blue-400">${commit.hash.substring(0, 7)}</code>
+                <span class="text-sm font-medium text-white">${commit.message}</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+                <span>${commit.author}</span>
+                <span>•</span>
+                <span>${commit.time}</span>
+            </div>
         </div>
     `).join('');
     
-    modal.style.display = 'block';
+    modal.classList.remove('hidden');
+}
+
+// 显示提交详情
+function showCommitDetails(hash) {
+    const commit = [...gitData.main, ...gitData.develop].find(c => c.hash === hash);
+    if (commit) {
+        showNotification(`📋 提交详情: ${commit.message}`, 'info');
+    }
 }
 
 // 运行CI流程
@@ -156,88 +240,150 @@ async function runPipeline() {
     }
 
     pipelineState.running = true;
+    const runBtn = document.getElementById('run-btn');
+    runBtn.disabled = true;
+    runBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    
     resetPipeline();
     
-    const trigger = document.getElementById('trigger');
-    trigger.style.transform = 'scale(1.1)';
-    
-    showNotification('🚀 开始运行CI流程...', 'info');
-    
-    // 运行各个阶段
-    for (let i = 0; i < pipelineState.stages.length; i++) {
-        const stageId = pipelineState.stages[i];
-        await runStage(stageId);
-    }
-    
-    // 显示最终结果
-    const resultBox = document.getElementById('pipeline-result');
-    resultBox.innerHTML = `
-        <div class="result-box success">
-            <span class="result-icon">✅</span>
-            <span class="result-text">CI流程执行成功！</span>
+    const statusEl = document.getElementById('pipeline-status');
+    statusEl.innerHTML = `
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+            <span class="text-sm text-blue-400">运行中</span>
         </div>
     `;
     
-    pipelineState.running = false;
-    trigger.style.transform = 'scale(1)';
+    showNotification('🚀 CI流程已启动...', 'info');
     
-    showNotification('✅ CI流程执行完成！', 'success');
-}
-
-// 运行单个阶段
-async function runStage(stageId) {
-    const stage = document.getElementById(`stage-${stageId}`);
-    const status = document.getElementById(`status-${stageId}`);
-    
-    // 设置为运行中
-    stage.classList.add('running');
-    stage.classList.remove('success', 'failed');
-    status.textContent = '运行中';
-    status.className = 'stage-status running';
-    
-    // 更新步骤状态
-    const steps = stage.querySelectorAll('.step-status');
-    steps.forEach((step, index) => {
-        setTimeout(() => {
-            step.textContent = '⏳';
-        }, index * 300);
-    });
-    
-    // 模拟执行时间
-    await sleep(2000);
-    
-    // 随机成功或失败（90%成功率）
-    const success = Math.random() > 0.1;
-    
-    if (success) {
-        stage.classList.remove('running');
-        stage.classList.add('success');
-        status.textContent = '成功';
-        status.className = 'stage-status success';
-        steps.forEach(step => {
-            step.textContent = '✅';
-        });
-    } else {
-        stage.classList.remove('running');
-        stage.classList.add('failed');
-        status.textContent = '失败';
-        status.className = 'stage-status failed';
-        steps.forEach(step => {
-            step.textContent = '❌';
-        });
+    try {
+        for (let i = 0; i < pipelineState.stages.length; i++) {
+            const stage = pipelineState.stages[i];
+            await runStage(stage);
+        }
         
-        // 如果失败，停止后续阶段
-        const resultBox = document.getElementById('pipeline-result');
-        resultBox.innerHTML = `
-            <div class="result-box failed">
-                <span class="result-icon">❌</span>
-                <span class="result-text">CI流程执行失败</span>
+        // 显示最终成功结果
+        const resultEl = document.getElementById('pipeline-result');
+        resultEl.innerHTML = `
+            <div class="text-center py-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
+                    <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <p class="text-lg font-semibold text-green-400 mb-1">CI流程执行成功</p>
+                <p class="text-sm text-slate-400">所有检查已通过</p>
             </div>
         `;
         
-        pipelineState.running = false;
+        statusEl.innerHTML = `
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                <span class="text-sm text-green-400">成功</span>
+            </div>
+        `;
+        
+        showNotification('✅ CI流程执行完成！', 'success');
+    } catch (error) {
+        const resultEl = document.getElementById('pipeline-result');
+        resultEl.innerHTML = `
+            <div class="text-center py-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mb-4">
+                    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                <p class="text-lg font-semibold text-red-400 mb-1">CI流程执行失败</p>
+                <p class="text-sm text-slate-400">请检查错误详情</p>
+            </div>
+        `;
+        
+        statusEl.innerHTML = `
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                <span class="text-sm text-red-400">失败</span>
+            </div>
+        `;
+        
         showNotification('❌ CI流程执行失败', 'error');
-        throw new Error('Pipeline failed');
+    } finally {
+        pipelineState.running = false;
+        runBtn.disabled = false;
+        runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+// 运行单个阶段
+async function runStage(stage) {
+    const stageEl = document.getElementById(`stage-${stage.id}`);
+    const statusEl = document.getElementById(`status-${stage.id}`);
+    const stepsEl = document.getElementById(`steps-${stage.id}`);
+    
+    // 设置为运行中
+    stageEl.classList.add('border-blue-500/50', 'bg-blue-500/5');
+    stageEl.classList.remove('border-dark-border');
+    statusEl.innerHTML = `
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+            <span class="text-xs text-blue-400">运行中</span>
+        </div>
+    `;
+    
+    // 更新步骤状态
+    const stepItems = stepsEl.querySelectorAll('.step-item');
+    stepItems.forEach((item, index) => {
+        setTimeout(() => {
+            const icon = item.querySelector('.step-icon');
+            icon.textContent = '🔄';
+            icon.classList.remove('text-slate-500');
+            icon.classList.add('text-blue-400', 'animate-spin');
+        }, index * 400);
+    });
+    
+    // 模拟执行时间
+    await sleep(2000 + Math.random() * 1000);
+    
+    // 90%成功率
+    const success = Math.random() > 0.1;
+    
+    if (success) {
+        stageEl.classList.remove('border-blue-500/50', 'bg-blue-500/5');
+        stageEl.classList.add('border-green-500/50', 'bg-green-500/5');
+        statusEl.innerHTML = `
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-xs text-green-400">成功</span>
+            </div>
+        `;
+        
+        stepItems.forEach((item, index) => {
+            setTimeout(() => {
+                const icon = item.querySelector('.step-icon');
+                icon.innerHTML = '<svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+                icon.classList.remove('text-blue-400', 'animate-spin');
+            }, index * 200);
+        });
+    } else {
+        stageEl.classList.remove('border-blue-500/50', 'bg-blue-500/5');
+        stageEl.classList.add('border-red-500/50', 'bg-red-500/5');
+        statusEl.innerHTML = `
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <span class="text-xs text-red-400">失败</span>
+            </div>
+        `;
+        
+        stepItems.forEach((item) => {
+            const icon = item.querySelector('.step-icon');
+            icon.innerHTML = '<svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+            icon.classList.remove('text-blue-400', 'animate-spin');
+        });
+        
+        throw new Error(`Stage ${stage.id} failed`);
     }
     
     await sleep(500);
@@ -247,27 +393,43 @@ async function runStage(stageId) {
 function resetPipeline() {
     pipelineState.running = false;
     
-    const stages = document.querySelectorAll('.stage');
+    const stages = document.querySelectorAll('.stage-container');
     stages.forEach(stage => {
-        stage.classList.remove('running', 'success', 'failed');
+        stage.classList.remove('border-blue-500/50', 'bg-blue-500/5', 'border-green-500/50', 'bg-green-500/5', 'border-red-500/50', 'bg-red-500/5');
+        stage.classList.add('border-dark-border');
     });
     
     const statuses = document.querySelectorAll('.stage-status');
     statuses.forEach(status => {
-        status.textContent = '等待中';
-        status.className = 'stage-status waiting';
+        status.innerHTML = `
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+                <span class="text-xs text-slate-400">等待中</span>
+            </div>
+        `;
     });
     
-    const steps = document.querySelectorAll('.step-status');
+    const steps = document.querySelectorAll('.step-icon');
     steps.forEach(step => {
         step.textContent = '⏳';
+        step.className = 'step-icon text-slate-500';
     });
     
-    const resultBox = document.getElementById('pipeline-result');
-    resultBox.innerHTML = `
-        <div class="result-box waiting">
-            <span class="result-icon">⏳</span>
-            <span class="result-text">等待执行...</span>
+    const resultEl = document.getElementById('pipeline-result');
+    resultEl.innerHTML = `
+        <div class="text-center py-4 text-slate-400">
+            <svg class="w-8 h-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm">等待执行...</p>
+        </div>
+    `;
+    
+    const statusEl = document.getElementById('pipeline-status');
+    statusEl.innerHTML = `
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+            <span class="text-sm text-slate-400">等待中</span>
         </div>
     `;
 }
@@ -278,42 +440,102 @@ function viewDetails() {
     const content = document.getElementById('ciDetailsContent');
     
     const details = `
-        <div class="ci-detail-entry">
-            <strong>触发时间:</strong> ${new Date().toLocaleString('zh-CN')}<br>
-            <strong>触发方式:</strong> Push to main<br>
-            <strong>提交哈希:</strong> ${gitData.main[0].hash}<br>
-            <strong>状态:</strong> <span style="color: #10b981">成功</span>
-        </div>
-        <div class="ci-detail-entry">
-            <strong>执行阶段:</strong><br>
-            ✅ Lint & Format (7s)<br>
-            ✅ 测试 (15s)<br>
-            ✅ 构建 (3s)<br>
-            ✅ 安全扫描 (29s)
-        </div>
-        <div class="ci-detail-entry">
-            <strong>测试结果:</strong><br>
-            - 测试套件: 3 passed<br>
-            - 测试用例: 18 passed<br>
-            - 覆盖率: 100%
+        <div class="space-y-4">
+            <div class="p-4 bg-dark-hover border border-dark-border rounded-lg">
+                <h4 class="font-medium text-white mb-3">运行信息</h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">触发时间:</span>
+                        <span class="text-white">${new Date().toLocaleString('zh-CN')}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">触发方式:</span>
+                        <span class="text-white">Push to main</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">提交哈希:</span>
+                        <code class="text-blue-400">${gitData.main[0].hash.substring(0, 7)}</code>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">状态:</span>
+                        <span class="text-green-400">成功</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-dark-hover border border-dark-border rounded-lg">
+                <h4 class="font-medium text-white mb-3">执行阶段</h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Lint & Format</span>
+                        <span class="text-green-400 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            7s
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">测试</span>
+                        <span class="text-green-400 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            15s
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">构建</span>
+                        <span class="text-green-400 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            3s
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">安全扫描</span>
+                        <span class="text-green-400 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            29s
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-dark-hover border border-dark-border rounded-lg">
+                <h4 class="font-medium text-white mb-3">测试结果</h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">测试套件:</span>
+                        <span class="text-white">3 passed</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">测试用例:</span>
+                        <span class="text-white">18 passed</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">覆盖率:</span>
+                        <span class="text-green-400">100%</span>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
     
     content.innerHTML = details;
-    modal.style.display = 'block';
-}
-
-// 更新统计信息
-function updateStats() {
-    document.getElementById('stat-files').textContent = '23';
-    document.getElementById('stat-tests').textContent = '18';
-    document.getElementById('stat-coverage').textContent = '100%';
-    document.getElementById('stat-builds').textContent = '5';
+    modal.classList.remove('hidden');
 }
 
 // 关闭模态框
 function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// 切换主题
+function toggleTheme() {
+    document.documentElement.classList.toggle('dark');
+    showNotification('主题已切换', 'info');
 }
 
 // 点击模态框外部关闭
@@ -321,7 +543,7 @@ window.onclick = function(event) {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
         if (event.target === modal) {
-            modal.style.display = 'none';
+            modal.classList.add('hidden');
         }
     });
 }
@@ -336,27 +558,29 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function updateStats() {
+    // Stats are static for now
+}
+
 function showNotification(message, type = 'info') {
-    // 简单的通知实现
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        warning: 'bg-amber-500',
+        info: 'bg-blue-500'
+    };
+    
     const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#06b6d4'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-    `;
+    notification.className = `fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-xl text-white font-medium transform transition-all duration-300 translate-x-full ${colors[type]}`;
     notification.textContent = message;
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100px)';
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
