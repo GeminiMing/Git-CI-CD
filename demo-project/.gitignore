@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json  # 需要提交到仓库以供CI使用
 yarn.lock
 
 # Testing
