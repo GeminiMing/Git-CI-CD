@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git/CI/CD 工程实践可视化演示</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🔧 Git/CI/CD 工程实践演示</h1>
+                <p class="subtitle">基石（+1）：坚实的工程实践 - Git/CI/CD基础</p>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 左侧：Git工作流可视化 -->
+            <section class="section git-workflow">
+                <h2>📦 Git 工作流</h2>
+                <div class="workflow-diagram">
+                    <div class="branch main-branch">
+                        <div class="branch-header">
+                            <span class="branch-name">main</span>
+                            <span class="branch-status">生产环境</span>
+                        </div>
+                        <div class="commits" id="main-commits">
+                            <div class="commit" data-hash="df56c2d">
+                                <span class="commit-hash">df56c2d</span>
+                                <span class="commit-message">chore: 初始化项目</span>
+                                <span class="commit-time">3小时前</span>
+                            </div>
+                            <div class="commit" data-hash="fa2aa3c">
+                                <span class="commit-hash">fa2aa3c</span>
+                                <span class="commit-message">fix: 修复CI配置</span>
+                                <span class="commit-time">2小时前</span>
+                            </div>
+                            <div class="commit active" data-hash="ade3705">
+                                <span class="commit-hash">ade3705</span>
+                                <span class="commit-message">docs: 添加分享文档</span>
+                                <span class="commit-time">刚刚</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch-connector"></div>
+
+                    <div class="branch develop-branch">
+                        <div class="branch-header">
+                            <span class="branch-name">develop</span>
+                            <span class="branch-status">开发环境</span>
+                        </div>
+                        <div class="commits" id="develop-commits">
+                            <!-- 动态生成 -->
+                        </div>
+                    </div>
+
+                    <div class="feature-branches">
+                        <div class="branch feature-branch">
+                            <div class="branch-header">
+                                <span class="branch-name">feature/new-feature</span>
+                                <button class="btn-merge" onclick="mergeBranch('feature/new-feature')">合并</button>
+                            </div>
+                            <div class="commits">
+                                <div class="commit">
+                                    <span class="commit-hash">a1b2c3d</span>
+                                    <span class="commit-message">feat: 添加新功能</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="git-actions">
+                    <button class="btn btn-primary" onclick="createCommit()">✨ 创建新提交</button>
+                    <button class="btn btn-secondary" onclick="createBranch()">🌿 创建分支</button>
+                    <button class="btn btn-info" onclick="showGitLog()">📜 查看Git日志</button>
+                </div>
+            </section>
+
+            <!-- 右侧：CI/CD流程可视化 -->
+            <section class="section cicd-pipeline">
+                <h2>🚀 CI/CD 自动化流程</h2>
+                <div class="pipeline-container">
+                    <div class="pipeline-trigger">
+                        <div class="trigger-box" id="trigger">
+                            <span class="trigger-icon">⚡</span>
+                            <span class="trigger-text">代码推送</span>
+                        </div>
+                        <div class="arrow">↓</div>
+                    </div>
+
+                    <div class="pipeline-stages">
+                        <!-- Stage 1: Lint -->
+                        <div class="stage" id="stage-lint">
+                            <div class="stage-header">
+                                <span class="stage-icon">🔍</span>
+                                <span class="stage-name">Lint & Format</span>
+                                <span class="stage-status" id="status-lint">等待中</span>
+                            </div>
+                            <div class="stage-content">
+                                <div class="step">
+                                    <span class="step-name">ESLint检查</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-name">Prettier格式化</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2: Test -->
+                        <div class="stage" id="stage-test">
+                            <div class="stage-header">
+                                <span class="stage-icon">🧪</span>
+                                <span class="stage-name">测试</span>
+                                <span class="stage-status" id="status-test">等待中</span>
+                            </div>
+                            <div class="stage-content">
+                                <div class="step">
+                                    <span class="step-name">单元测试 (Node 18)</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-name">单元测试 (Node 20)</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-name">覆盖率报告</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3: Build -->
+                        <div class="stage" id="stage-build">
+                            <div class="stage-header">
+                                <span class="stage-icon">📦</span>
+                                <span class="stage-name">构建</span>
+                                <span class="stage-status" id="status-build">等待中</span>
+                            </div>
+                            <div class="stage-content">
+                                <div class="step">
+                                    <span class="step-name">构建验证</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 4: Security -->
+                        <div class="stage" id="stage-security">
+                            <div class="stage-header">
+                                <span class="stage-icon">🔒</span>
+                                <span class="stage-name">安全扫描</span>
+                                <span class="stage-status" id="status-security">等待中</span>
+                            </div>
+                            <div class="stage-content">
+                                <div class="step">
+                                    <span class="step-name">npm audit</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-name">Snyk扫描</span>
+                                    <span class="step-status">⏳</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pipeline-result" id="pipeline-result">
+                        <div class="result-box">
+                            <span class="result-icon">⏳</span>
+                            <span class="result-text">等待执行...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-actions">
+                    <button class="btn btn-success" onclick="runPipeline()">▶️ 运行CI流程</button>
+                    <button class="btn btn-warning" onclick="resetPipeline()">🔄 重置</button>
+                    <button class="btn btn-info" onclick="viewDetails()">📊 查看详情</button>
+                </div>
+            </section>
+
+            <!-- 底部：统计信息 -->
+            <section class="section stats">
+                <h2>📊 项目统计</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📁</div>
+                        <div class="stat-value" id="stat-files">23</div>
+                        <div class="stat-label">项目文件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🧪</div>
+                        <div class="stat-value" id="stat-tests">18</div>
+                        <div class="stat-label">测试用例</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value" id="stat-coverage">100%</div>
+                        <div class="stat-label">覆盖率</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🚀</div>
+                        <div class="stat-value" id="stat-builds">5</div>
+                        <div class="stat-label">CI运行次数</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 模态框：Git日志 -->
+        <div class="modal" id="gitLogModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('gitLogModal')">&times;</span>
+                <h3>Git 提交日志</h3>
+                <div class="git-log" id="gitLogContent">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 模态框：CI详情 -->
+        <div class="modal" id="ciDetailsModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('ciDetailsModal')">&times;</span>
+                <h3>CI/CD 运行详情</h3>
+                <div class="ci-details" id="ciDetailsContent">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
